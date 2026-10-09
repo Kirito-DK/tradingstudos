@@ -4,14 +4,45 @@ import { describe, expect, it } from "vitest";
 
 import { routeTree } from "@/routeTree.gen";
 
-// Match routes without running loaders or rendering: loaders may need a server or
-// network the test run lacks, and jsdom never loads the stylesheets React waits on.
-describe("App routing", () => {
-  it("matches a page for / instead of falling back to not found", () => {
-    const router = createRouter({ routeTree, context: { queryClient: new QueryClient() } });
+function makeRouter() {
+  return createRouter({
+    routeTree,
+    context: { queryClient: new QueryClient() },
+  });
+}
 
+// These tests only match routes; they do not run auth loaders or contact Supabase.
+describe("App routing", () => {
+  it("matches the home page instead of falling back to not found", () => {
+    const router = makeRouter();
     const matches = router.matchRoutes("/");
 
     expect(matches.at(-1)?.routeId).not.toBe(rootRouteId);
+  });
+
+  it.each([
+    ["/dashboard", "/dashboard"],
+    ["/modules", "/modules"],
+    ["/lessons", "/lessons"],
+    ["/notebook", "/notebook"],
+    ["/doubts", "/doubts"],
+    ["/reviews", "/reviews"],
+    ["/journal", "/journal"],
+    ["/settings", "/settings"],
+    ["/auth", "/auth"],
+    ["/reset-password", "/reset-password"],
+  ])("resolves %s to its registered page", (url, expectedRouteId) => {
+    const router = makeRouter();
+    const matches = router.matchRoutes(url);
+
+    expect(matches.map((match) => match.routeId)).toContain(expectedRouteId);
+    expect(matches.at(-1)?.routeId).toBe(expectedRouteId);
+  });
+
+  it("resolves an individual lesson URL", () => {
+    const router = makeRouter();
+    const matches = router.matchRoutes("/lesson/test-lesson-id");
+
+    expect(matches.at(-1)?.routeId).toBe("/lesson/$lessonId");
   });
 });
