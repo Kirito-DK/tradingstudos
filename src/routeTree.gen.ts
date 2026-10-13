@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AuthenticatedLessonsIndexRouteImport } from './routes/_authenticated/lessons.index'
+import { Route as AuthenticatedLessonsLessonIdRouteImport } from './routes/_authenticated/lessons.$lessonId'
 import { Route as AuthenticatedModulesIndexRouteImport } from './routes/_authenticated/modules.index'
 import { Route as AuthenticatedModulesModuleIdRouteImport } from './routes/_authenticated/modules.$moduleId'
 
@@ -42,6 +43,12 @@ const AuthenticatedLessonsIndexRoute =
     path: '/lessons/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedLessonsLessonIdRoute =
+  AuthenticatedLessonsLessonIdRouteImport.update({
+    id: '/lessons/$lessonId',
+    path: '/lessons/$lessonId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedModulesIndexRoute =
   AuthenticatedModulesIndexRouteImport.update({
     id: '/modules/',
@@ -59,6 +66,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/lessons/$lessonId': typeof AuthenticatedLessonsLessonIdRoute
   '/modules/$moduleId': typeof AuthenticatedModulesModuleIdRoute
   '/lessons/': typeof AuthenticatedLessonsIndexRoute
   '/modules/': typeof AuthenticatedModulesIndexRoute
@@ -67,6 +75,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/lessons/$lessonId': typeof AuthenticatedLessonsLessonIdRoute
   '/modules/$moduleId': typeof AuthenticatedModulesModuleIdRoute
   '/lessons': typeof AuthenticatedLessonsIndexRoute
   '/modules': typeof AuthenticatedModulesIndexRoute
@@ -77,6 +86,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/_authenticated/lessons/$lessonId': typeof AuthenticatedLessonsLessonIdRoute
   '/_authenticated/modules/$moduleId': typeof AuthenticatedModulesModuleIdRoute
   '/_authenticated/lessons/': typeof AuthenticatedLessonsIndexRoute
   '/_authenticated/modules/': typeof AuthenticatedModulesIndexRoute
@@ -87,6 +97,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/reset-password'
+    | '/lessons/$lessonId'
     | '/modules/$moduleId'
     | '/lessons/'
     | '/modules/'
@@ -95,6 +106,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/reset-password'
+    | '/lessons/$lessonId'
     | '/modules/$moduleId'
     | '/lessons'
     | '/modules'
@@ -104,6 +116,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/reset-password'
+    | '/_authenticated/lessons/$lessonId'
     | '/_authenticated/modules/$moduleId'
     | '/_authenticated/lessons/'
     | '/_authenticated/modules/'
@@ -153,6 +166,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLessonsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/lessons/$lessonId': {
+      id: '/_authenticated/lessons/$lessonId'
+      path: '/lessons/$lessonId'
+      fullPath: '/lessons/$lessonId'
+      preLoaderRoute: typeof AuthenticatedLessonsLessonIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/modules/': {
       id: '/_authenticated/modules/'
       path: '/modules'
@@ -171,12 +191,14 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedLessonsLessonIdRoute: typeof AuthenticatedLessonsLessonIdRoute
   AuthenticatedModulesModuleIdRoute: typeof AuthenticatedModulesModuleIdRoute
   AuthenticatedLessonsIndexRoute: typeof AuthenticatedLessonsIndexRoute
   AuthenticatedModulesIndexRoute: typeof AuthenticatedModulesIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedLessonsLessonIdRoute: AuthenticatedLessonsLessonIdRoute,
   AuthenticatedModulesModuleIdRoute: AuthenticatedModulesModuleIdRoute,
   AuthenticatedLessonsIndexRoute: AuthenticatedLessonsIndexRoute,
   AuthenticatedModulesIndexRoute: AuthenticatedModulesIndexRoute,
