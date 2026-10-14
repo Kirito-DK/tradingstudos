@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { EmptyState, ErrorBlock, LoadingBlock } from "@/components/common";
 import { LessonDialog } from "@/components/forms";
+import { ReviewScheduler } from "@/components/ReviewScheduler";
 
 export const Route = createFileRoute("/_authenticated/lessons/$lessonId")({
   head: () => ({ meta: [{ title: "Aula — TradeStudy" }] }),
@@ -133,6 +134,8 @@ function LessonView({ lessonId }: { lessonId: string }) {
       {l.quick_notes && (
         <div className="panel p-4 text-sm"><span className="text-muted-foreground">Observações rápidas: </span>{l.quick_notes}</div>
       )}
+
+      <ReviewScheduler key={l.updated_at} lesson={l} />
 
       <section className="space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
