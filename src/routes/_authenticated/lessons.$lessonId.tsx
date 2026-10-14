@@ -56,7 +56,7 @@ function LessonView({ lessonId }: { lessonId: string }) {
       status, completed_at: status === "completed" ? new Date().toISOString() : null,
     }).eq("id", lessonId);
     setBusy(false);
-    if (error) return toast.error("Não foi possível alterar o status.");
+    if (error) { toast.error("Não foi possível alterar o status."); return; }
     toast.success(status === "completed" ? "Aula concluída!" : "Status atualizado.");
     qc.invalidateQueries({ queryKey: ["lesson", lessonId] });
     qc.invalidateQueries({ queryKey: ["lessons"] });
@@ -200,7 +200,7 @@ function DoubtsList({ lessonId }: { lessonId: string }) {
     setBusy(true);
     const { error } = await supabase.from("doubts").insert({ lesson_id: lessonId, question: q.slice(0, 2000) });
     setBusy(false);
-    if (error) return toast.error("Não foi possível registrar a dúvida.");
+    if (error) { toast.error("Não foi possível registrar a dúvida."); return; }
     setText("");
     toast.success("Dúvida registrada.");
     refresh();

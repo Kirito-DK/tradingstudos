@@ -5,7 +5,9 @@ export async function moveItem(table: "modules" | "lessons", ids: string[], inde
   const target = index + dir;
   if (target < 0 || target >= ids.length) return;
   const next = [...ids];
-  [next[index], next[target]] = [next[target], next[index]];
+  const a = next[index]!;
+  next[index] = next[target]!;
+  next[target] = a;
   const results = await Promise.all(
     next.map((id, position) => supabase.from(table).update({ position }).eq("id", id)),
   );

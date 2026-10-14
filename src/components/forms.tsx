@@ -38,14 +38,14 @@ export function ModuleDialog({
     e.preventDefault();
     if (busy) return;
     const t = title.trim();
-    if (!t) return toast.error("Informe o título do módulo.");
+    if (!t) { toast.error("Informe o título do módulo."); return; }
     setBusy(true);
     const payload = { title: t, description: description.trim() || null };
     const { error } = module
       ? await supabase.from("modules").update(payload).eq("id", module.id)
       : await supabase.from("modules").insert({ ...payload, position: nextPosition });
     setBusy(false);
-    if (error) return toast.error("Não foi possível salvar o módulo.");
+    if (error) { toast.error("Não foi possível salvar o módulo."); return; }
     toast.success(module ? "Módulo atualizado." : "Módulo criado.");
     qc.invalidateQueries({ queryKey: ["modules"] });
     onOpenChange(false);
@@ -112,12 +112,12 @@ export function LessonDialog({
     e.preventDefault();
     if (busy) return;
     const title = f.title.trim();
-    if (!title) return toast.error("Informe o título da aula.");
+    if (!title) { toast.error("Informe o título da aula."); return; }
     const url = f.youtube_url.trim();
-    if (url && !parseYouTubeId(url)) return toast.error("Link do YouTube inválido.");
+    if (url && !parseYouTubeId(url)) { toast.error("Link do YouTube inválido."); return; }
     const duration = f.duration.trim() ? Number(f.duration) : null;
     if (duration !== null && (!Number.isInteger(duration) || duration < 0))
-      return toast.error("Duração deve ser um número inteiro de minutos.");
+      { toast.error("Duração deve ser um número inteiro de minutos."); return; }
     setBusy(true);
     const payload = {
       title,
@@ -132,7 +132,7 @@ export function LessonDialog({
       ? await supabase.from("lessons").update(payload).eq("id", lesson.id)
       : await supabase.from("lessons").insert({ ...payload, module_id: moduleId, position: nextPosition });
     setBusy(false);
-    if (error) return toast.error("Não foi possível salvar a aula.");
+    if (error) { toast.error("Não foi possível salvar a aula."); return; }
     toast.success(lesson ? "Aula atualizada." : "Aula criada.");
     qc.invalidateQueries({ queryKey: ["lessons"] });
     if (lesson) qc.invalidateQueries({ queryKey: ["lesson", lesson.id] });

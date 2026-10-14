@@ -29,13 +29,13 @@ export const allLessonsQuery = () =>
 export const lessonQuery = (id: string) =>
   queryOptions({
     queryKey: ["lesson", id],
-    queryFn: async () => check(await supabase.from("lessons").select("*").eq("id", id).maybeSingle()),
+    queryFn: async (): Promise<Lesson | null> => check(await supabase.from("lessons").select("*").eq("id", id).maybeSingle()),
   });
 
 export const notesQuery = (lessonId: string) =>
   queryOptions({
     queryKey: ["notes", lessonId],
-    queryFn: async () =>
+    queryFn: async (): Promise<LessonNotes | null> =>
       check(await supabase.from("lesson_notes").select("*").eq("lesson_id", lessonId).maybeSingle()),
     staleTime: 0,
   });
