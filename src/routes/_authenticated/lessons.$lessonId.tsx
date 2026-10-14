@@ -70,10 +70,10 @@ function LessonView({ lessonId }: { lessonId: string }) {
         </Link>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" disabled={!prev} asChild={!!prev}>
-            {prev ? <Link to="/lessons/$lessonId" params={{ lessonId: prev.id }}><ChevronLeft className="h-4 w-4" />Anterior</Link> : <span><ChevronLeft className="h-4 w-4" />Anterior</span>}
+            {prev ? <Link to="/lessons/$lessonId" params={{ lessonId: prev.id }}><ChevronLeft className="h-4 w-4" />Anterior</Link> : <span className="inline-flex items-center gap-1"><ChevronLeft className="h-4 w-4" />Anterior</span>}
           </Button>
           <Button variant="outline" size="sm" disabled={!next} asChild={!!next}>
-            {next ? <Link to="/lessons/$lessonId" params={{ lessonId: next.id }}>Próxima<ChevronRight className="h-4 w-4" /></Link> : <span>Próxima<ChevronRight className="h-4 w-4" /></span>}
+            {next ? <Link to="/lessons/$lessonId" params={{ lessonId: next.id }}>Próxima<ChevronRight className="h-4 w-4" /></Link> : <span className="inline-flex items-center gap-1">Próxima<ChevronRight className="h-4 w-4" /></span>}
           </Button>
         </div>
       </div>
