@@ -56,7 +56,7 @@ function LessonView({ lessonId }: { lessonId: string }) {
       status, completed_at: status === "completed" ? new Date().toISOString() : null,
     }).eq("id", lessonId);
     setBusy(false);
-    if (error) return toast.error("Não foi possível alterar o status.");
+    if (error) { toast.error("Não foi possível alterar o status."); return; }
     toast.success(status === "completed" ? "Aula concluída!" : "Status atualizado.");
     qc.invalidateQueries({ queryKey: ["lesson", lessonId] });
     qc.invalidateQueries({ queryKey: ["lessons"] });
@@ -70,10 +70,10 @@ function LessonView({ lessonId }: { lessonId: string }) {
         </Link>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" disabled={!prev} asChild={!!prev}>
-            {prev ? <Link to="/lessons/$lessonId" params={{ lessonId: prev.id }}><ChevronLeft className="h-4 w-4" />Anterior</Link> : <span><ChevronLeft className="h-4 w-4" />Anterior</span>}
+            {prev ? <Link to="/lessons/$lessonId" params={{ lessonId: prev.id }}><ChevronLeft className="h-4 w-4" />Anterior</Link> : <span className="inline-flex items-center gap-1"><ChevronLeft className="h-4 w-4" />Anterior</span>}
           </Button>
           <Button variant="outline" size="sm" disabled={!next} asChild={!!next}>
-            {next ? <Link to="/lessons/$lessonId" params={{ lessonId: next.id }}>Próxima<ChevronRight className="h-4 w-4" /></Link> : <span>Próxima<ChevronRight className="h-4 w-4" /></span>}
+            {next ? <Link to="/lessons/$lessonId" params={{ lessonId: next.id }}>Próxima<ChevronRight className="h-4 w-4" /></Link> : <span className="inline-flex items-center gap-1">Próxima<ChevronRight className="h-4 w-4" /></span>}
           </Button>
         </div>
       </div>
@@ -200,7 +200,7 @@ function DoubtsList({ lessonId }: { lessonId: string }) {
     setBusy(true);
     const { error } = await supabase.from("doubts").insert({ lesson_id: lessonId, question: q.slice(0, 2000) });
     setBusy(false);
-    if (error) return toast.error("Não foi possível registrar a dúvida.");
+    if (error) { toast.error("Não foi possível registrar a dúvida."); return; }
     setText("");
     toast.success("Dúvida registrada.");
     refresh();

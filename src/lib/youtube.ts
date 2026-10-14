@@ -29,7 +29,7 @@ export function parseYouTubeId(raw: string | null | undefined): string | null {
     id = url.searchParams.get("v");
   } else {
     const m = url.pathname.match(/^\/(embed|shorts|live|v)\/([^/?#]+)/);
-    if (m) id = m[2];
+    if (m) id = m[2] ?? null;
   }
   return id && ID_RE.test(id) ? id : null;
 }

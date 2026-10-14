@@ -31,7 +31,7 @@ function SettingsPage() {
     setBusy(true);
     const { error } = await supabase.from("profiles").upsert({ id: user.id, display_name: name.trim() || null });
     setBusy(false);
-    if (error) return toast.error("Não foi possível salvar.");
+    if (error) { toast.error("Não foi possível salvar."); return; }
     toast.success("Perfil atualizado.");
     qc.invalidateQueries({ queryKey: ["profile"] });
   }
