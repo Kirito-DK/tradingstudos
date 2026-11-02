@@ -3,6 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Layers, Plus } from "lucide-react";
 import { allLessonsQuery, modulesQuery, openDoubtsCountQuery, recentNotesQuery } from "@/lib/data";
 import { progressPercent } from "@/lib/progress";
+import { addDaysISO, reviewBucket, toISODate } from "@/lib/review";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { EmptyState, ErrorBlock, LoadingBlock, PageHeader, ProgressBar } from "@/components/common";
 
@@ -26,6 +28,20 @@ function Dashboard() {
   const lq = useQuery(allLessonsQuery());
   const doubts = useQuery(openDoubtsCountQuery());
   const notes = useQuery(recentNotesQuery());
+  const activity = useQuery({
+    queryKey: ["activity"],
+    queryFn: async () => {
+      const since = addDaysISO(-27);
+      const [n, r] = await Promise.all([
+        supabase.from("lesson_notes").select("updated_at").gte("updated_at", since),
+        supabase.from("review_logs").select("reviewed_at").gte("reviewed_at", since),
+      ]);
+      const days = new Map<string, number>();
+      for (const x of n.data ?? []) { const k = toISODate(new Date(x.updated_at)); days.set(k, (days.get(k) ?? 0) + 1); }
+      for (const x of r.data ?? []) { const k = toISODate(new Date(x.reviewed_at)); days.set(k, (days.get(k) ?? 0) + 1); }
+      return days;
+    },
+  });
 
   if (mods.isLoading || lq.isLoading) return <LoadingBlock />;
   if (mods.error || lq.error) return <ErrorBlock error={mods.error ?? lq.error} />;
@@ -41,7 +57,8 @@ function Dashboard() {
 
   const done = lessons.filter((l) => l.status === "completed").length;
   const pct = progressPercent(done, lessons.length);
-  const review = lessons.filter((l) => l.needs_review || l.review_status === "pending").length;
+  const pendingReviews = lessons.filter((l) => ["overdue", "today"].includes(reviewBucket(l)));
+  const review = pendingReviews.length;
   const last = [...lessons].filter((l) => l.last_accessed_at).sort((a, b) => b.last_accessed_at!.localeCompare(a.last_accessed_at!))[0];
   const modPos = new Map((mods.data ?? []).map((m, i) => [m.id, i]));
   const nextPending = [...lessons].filter((l) => l.status !== "completed")
@@ -90,6 +107,32 @@ function Dashboard() {
               ))}
             </ul>
           )}
+        </div>
+      </div>
+      <div className="mt-4 grid gap-4 lg:grid-cols-2">
+        <div className="panel p-5">
+          <h2 className="mb-3 font-medium">Revisões pendentes</h2>
+          {pendingReviews.length === 0 ? <p className="text-sm text-muted-foreground">Nenhuma revisão para hoje.</p> : (
+            <ul className="space-y-2">
+              {pendingReviews.slice(0, 5).map((l) => (
+                <li key={l.id} className="flex items-center justify-between gap-2 text-sm">
+                  <Link to="/lessons/$lessonId" params={{ lessonId: l.id }} className="truncate hover:text-primary">{l.title}</Link>
+                  <span className={`font-mono text-xs ${reviewBucket(l) === "overdue" ? "text-destructive" : "text-warning"}`}>{reviewBucket(l) === "overdue" ? "vencida" : "hoje"}</span>
+                </li>
+              ))}
+              <li><Link to="/reviews" className="text-xs text-primary hover:underline">Ver todas →</Link></li>
+            </ul>
+          )}
+        </div>
+        <div className="panel p-5">
+          <h2 className="mb-3 font-medium">Consistência (últimos 28 dias)</h2>
+          <div className="grid grid-cols-14 gap-1" style={{ gridTemplateColumns: "repeat(14, minmax(0, 1fr))" }}>
+            {Array.from({ length: 28 }, (_, i) => addDaysISO(i - 27)).map((d) => {
+              const c = activity.data?.get(d) ?? 0;
+              return <div key={d} title={`${new Date(d + "T12:00").toLocaleDateString("pt-BR")}: ${c} atividade(s)`} className={`aspect-square rounded-sm ${c === 0 ? "bg-muted" : c < 3 ? "bg-success/40" : "bg-success"}`} />;
+            })}
+          </div>
+          <p className="mt-2 text-xs text-muted-foreground">Dias com anotações salvas ou revisões concluídas.</p>
         </div>
       </div>
     </>

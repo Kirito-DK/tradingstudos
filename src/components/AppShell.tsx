@@ -18,6 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { allLessonsQuery } from "@/lib/data";
 import { progressPercent } from "@/lib/progress";
 import { Logo } from "./Logo";
+import { GlobalSearch } from "./GlobalSearch";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import {
@@ -97,7 +98,8 @@ export function AppShell() {
             <Menu className="h-5 w-5" />
           </Button>
           <Logo className="md:hidden" />
-          <div className="ml-auto flex items-center gap-4">
+          <div className="ml-auto flex items-center gap-3">
+            <GlobalSearch />
             <div className="hidden items-center gap-2 sm:flex" title={`${done} de ${total} aulas concluídas`}>
               <span className="text-xs text-muted-foreground">Progresso</span>
               <div className="h-1.5 w-28 overflow-hidden rounded-full bg-muted">

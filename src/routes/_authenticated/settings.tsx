@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageHeader } from "@/components/common";
 import { useSignOut } from "@/components/AppShell";
+import { exportCSV, exportJSON } from "@/lib/export";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   head: () => ({ meta: [{ title: "Configurações — TradeStudy" }] }),
@@ -24,6 +25,12 @@ function SettingsPage() {
   });
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  async function run(fn: () => Promise<void>) {
+    setExporting(true);
+    try { await fn(); toast.success("Exportação concluída."); } catch { toast.error("Não foi possível exportar."); }
+    setExporting(false);
+  }
   useEffect(() => { setName(profile.data?.display_name ?? ""); }, [profile.data]);
 
   async function save(e: React.FormEvent) {
@@ -52,8 +59,17 @@ function SettingsPage() {
           <h2 className="font-medium">Conta</h2>
           <p className="text-sm"><span className="text-muted-foreground">E-mail: </span>{user.email}</p>
           <p className="text-sm"><span className="text-muted-foreground">Criada em: </span>{new Date(user.created_at).toLocaleDateString("pt-BR")}</p>
-          <p className="text-xs text-muted-foreground">Exportação dos estudos chega na Etapa 3.</p>
           <Button variant="outline" onClick={signOut}>Encerrar sessão</Button>
+        </div>
+        <div className="panel space-y-3 p-5 lg:col-span-2">
+          <h2 className="font-medium">Exportar meus estudos</h2>
+          <p className="text-sm text-muted-foreground">Baixe uma cópia completa dos seus dados. Apenas o que pertence à sua conta é exportado.</p>
+          <div className="flex flex-wrap gap-2">
+            <Button disabled={exporting} onClick={() => run(exportJSON)}>Cópia completa (JSON)</Button>
+            {([["modules","Módulos"],["lessons","Aulas"],["lesson_notes","Anotações"],["doubts","Dúvidas"],["review_logs","Revisões"],["chart_entries","Diário"]] as const).map(([t, l]) => (
+              <Button key={t} variant="outline" disabled={exporting} onClick={() => run(() => exportCSV(t))}>{l} (CSV)</Button>
+            ))}
+          </div>
         </div>
       </div>
     </>
