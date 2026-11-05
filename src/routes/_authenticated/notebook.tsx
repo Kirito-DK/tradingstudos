@@ -66,24 +66,24 @@ function NotebookPage() {
   return (
     <>
       <PageHeader title="Caderno de estudos" subtitle="Todas as suas anotações em um só lugar." />
-      <div className="mb-4 grid gap-2 md:grid-cols-[minmax(0,1fr)_auto_auto_auto]">
+      <div className="mb-4 grid gap-2 md:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_auto_auto_auto]">
         <Input placeholder="Buscar nas anotações, resumos, dúvidas e aplicações..." value={q} onChange={(e) => setQ(e.target.value)} />
         <Select value={mod} onValueChange={(v) => { setMod(v); setLesson("all"); }}>
-          <SelectTrigger className="md:w-48"><SelectValue placeholder="Módulo" /></SelectTrigger>
+          <SelectTrigger className="xl:w-48"><SelectValue placeholder="Módulo" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos os módulos</SelectItem>
             {(mods.data ?? []).map((m) => <SelectItem key={m.id} value={m.id}>{m.title}</SelectItem>)}
           </SelectContent>
         </Select>
         <Select value={lesson} onValueChange={setLesson}>
-          <SelectTrigger className="md:w-48"><SelectValue placeholder="Aula" /></SelectTrigger>
+          <SelectTrigger className="xl:w-48"><SelectValue placeholder="Aula" /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas as aulas</SelectItem>
             {lessonOpts.map((l) => <SelectItem key={l.id} value={l.id}>{l.title}</SelectItem>)}
           </SelectContent>
         </Select>
         <Select value={period} onValueChange={setPeriod}>
-          <SelectTrigger className="md:w-40"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="xl:w-40"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Qualquer data</SelectItem>
             <SelectItem value="7">Últimos 7 dias</SelectItem>
