@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 import { createFileRoute, useRouteContext } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
@@ -6,12 +7,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { InstallApp } from "@/components/InstallApp";
 import { PageHeader } from "@/components/common";
 import { useSignOut } from "@/components/AppShell";
 import { exportCSV, exportJSON } from "@/lib/export";
 
 export const Route = createFileRoute("/_authenticated/settings")({
-  head: () => ({ meta: [{ title: "Configurações — TradeStudy" }] }),
+  head: () => pageHead("Configurações — TradeStudy", "Gerencie seu perfil, exporte seus estudos e instale o TradeStudy."),
   component: SettingsPage,
 });
 
@@ -57,20 +59,21 @@ function SettingsPage() {
         </form>
         <div className="panel space-y-3 p-5">
           <h2 className="font-medium">Conta</h2>
-          <p className="text-sm"><span className="text-muted-foreground">E-mail: </span>{user.email}</p>
+          <p className="break-all text-sm"><span className="text-muted-foreground">E-mail: </span>{user.email}</p>
           <p className="text-sm"><span className="text-muted-foreground">Criada em: </span>{new Date(user.created_at).toLocaleDateString("pt-BR")}</p>
           <Button variant="outline" onClick={signOut}>Encerrar sessão</Button>
         </div>
         <div className="panel space-y-3 p-5 lg:col-span-2">
           <h2 className="font-medium">Exportar meus estudos</h2>
           <p className="text-sm text-muted-foreground">Baixe uma cópia completa dos seus dados. Apenas o que pertence à sua conta é exportado.</p>
-          <div className="flex flex-wrap gap-2">
-            <Button disabled={exporting} onClick={() => run(exportJSON)}>Cópia completa (JSON)</Button>
+          <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+            <Button className="col-span-2" disabled={exporting} onClick={() => run(exportJSON)}>Cópia completa (JSON)</Button>
             {([["modules","Módulos"],["lessons","Aulas"],["lesson_notes","Anotações"],["doubts","Dúvidas"],["review_logs","Revisões"],["chart_entries","Diário"]] as const).map(([t, l]) => (
               <Button key={t} variant="outline" disabled={exporting} onClick={() => run(() => exportCSV(t))}>{l} (CSV)</Button>
             ))}
           </div>
         </div>
+        <InstallApp />
       </div>
     </>
   );

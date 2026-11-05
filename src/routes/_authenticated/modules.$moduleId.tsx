@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -13,7 +14,7 @@ import { LessonDialog } from "@/components/forms";
 import { ConfirmDelete } from "@/components/ConfirmDelete";
 
 export const Route = createFileRoute("/_authenticated/modules/$moduleId")({
-  head: () => ({ meta: [{ title: "Módulo — TradeStudy" }] }),
+  head: () => pageHead("Módulo — TradeStudy", "Consulte as aulas e o progresso deste módulo no TradeStudy."),
   component: ModulePage,
 });
 

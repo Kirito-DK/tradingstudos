@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
@@ -14,7 +15,7 @@ import { EmptyState, ErrorBlock, LoadingBlock, PageHeader } from "@/components/c
 import { ConfirmDelete } from "@/components/ConfirmDelete";
 
 export const Route = createFileRoute("/_authenticated/doubts")({
-  head: () => ({ meta: [{ title: "Minhas dúvidas — TradeStudy" }] }),
+  head: () => pageHead("Minhas dúvidas — TradeStudy", "Organize perguntas, pesquisas e respostas dos seus estudos no TradeStudy."),
   component: DoubtsPage,
 });
 
@@ -53,7 +54,7 @@ function DoubtsPage() {
   return (
     <>
       <PageHeader title="Minhas dúvidas" subtitle="Acompanhe o que ainda precisa ser pesquisado." />
-      <div className="mb-4 grid gap-2 md:grid-cols-[1fr_auto_auto]">
+      <div className="mb-4 grid gap-2 md:grid-cols-[minmax(0,1fr)_auto_auto]">
         <Input placeholder="Buscar dúvidas..." value={q} onChange={(e) => setQ(e.target.value)} />
         <Select value={status} onValueChange={setStatus}>
           <SelectTrigger className="md:w-44"><SelectValue /></SelectTrigger>
@@ -77,12 +78,13 @@ function DoubtsPage() {
         <EmptyState icon={<HelpCircle className="h-8 w-8" />} title="Nenhuma dúvida aqui" text="Registre dúvidas na página de cada aula." />
       ) : (
         <div className="grid gap-3">
-          {dq.data!.map((d) => <DoubtCard key={d.id + d.updated_at} d={d} modName={modName.get(d.lessons?.module_id ?? "")} onDelete={() => setDel(d)} />)}
+          {(dq.data ?? []).map((d) => <DoubtCard key={d.id + d.updated_at} d={d} modName={modName.get(d.lessons?.module_id ?? "")} onDelete={() => setDel(d)} />)}
         </div>
       )}
       <ConfirmDelete open={!!del} onOpenChange={(o) => !o && setDel(null)} title="Excluir dúvida?" description="A dúvida e a resposta registrada serão removidas."
         onConfirm={async () => {
-          const { error } = await supabase.from("doubts").delete().eq("id", del!.id);
+          if (!del) return;
+          const { error } = await supabase.from("doubts").delete().eq("id", del.id);
           if (error) { toast.error("Erro ao excluir."); return; }
           qc.invalidateQueries({ queryKey: ["doubts"] });
         }} />
@@ -110,8 +112,8 @@ function DoubtCard({ d, modName, onDelete }: { d: Row; modName?: string | undefi
   const dirty = answer !== (d.answer ?? "") || st !== d.status;
 
   return (
-    <div className="panel space-y-3 p-4">
-      <div className="flex flex-wrap items-start justify-between gap-2">
+    <div className="panel min-w-0 space-y-3 break-words p-4">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2">
         <div className="min-w-0 flex-1">
           <p className="font-medium">{d.question}</p>
           <p className="mt-1 text-xs text-muted-foreground">
@@ -123,15 +125,15 @@ function DoubtCard({ d, modName, onDelete }: { d: Row; modName?: string | undefi
         <Badge variant="outline" className={TONE[d.status]}>{LABEL[d.status]}</Badge>
       </div>
       <Textarea rows={2} placeholder="Resposta ou explicação encontrada..." value={answer} onChange={(e) => setAnswer(e.target.value)} />
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2 sm:flex">
         <Select value={st} onValueChange={setSt}>
-          <SelectTrigger className="h-9 w-40"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="min-w-0 sm:w-40"><SelectValue /></SelectTrigger>
           <SelectContent>
             {Object.entries(LABEL).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
           </SelectContent>
         </Select>
         <Button size="sm" disabled={busy || !dirty} onClick={save}>{busy ? "Salvando..." : "Salvar"}</Button>
-        <Button size="icon" variant="ghost" className="ml-auto" onClick={onDelete} aria-label="Excluir"><Trash2 className="h-4 w-4 text-destructive" /></Button>
+        <Button size="icon" variant="ghost" className="shrink-0 sm:ml-auto" onClick={onDelete} aria-label="Excluir"><Trash2 className="h-4 w-4 text-destructive" /></Button>
       </div>
     </div>
   );

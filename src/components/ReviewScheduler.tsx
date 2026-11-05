@@ -63,8 +63,8 @@ export function ReviewScheduler({ lesson, onDone }: { lesson: Lesson; onDone?: (
   }
 
   return (
-    <div className="panel space-y-3 border-warning/30 p-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
+    <div className="space-y-3 border-t border-warning/30 pt-4">
+      <div className="grid gap-2 sm:flex sm:items-center sm:justify-between">
         <h3 className="text-sm font-medium text-warning">Revisão</h3>
         <span className="text-xs text-muted-foreground">
           {lesson.review_status ? REVIEW_STATUS_LABEL[lesson.review_status] : "Sem revisão agendada"}
@@ -72,14 +72,14 @@ export function ReviewScheduler({ lesson, onDone }: { lesson: Lesson; onDone?: (
           {lesson.last_reviewed_at && ` · última: ${new Date(lesson.last_reviewed_at).toLocaleDateString("pt-BR")}`}
         </span>
       </div>
-      <div className="flex flex-wrap gap-2">
+      <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
         {QUICK_REVIEWS.map((q) => (
           <Button key={q.days} size="sm" variant="outline" disabled={busy} onClick={() => schedule(addDaysISO(q.days))}>{q.label}</Button>
         ))}
-        <Input type="date" className="h-9 w-40" value={date} onChange={(e) => setDate(e.target.value)} />
+        <Input type="date" className="min-w-0 sm:w-40" value={date} onChange={(e) => setDate(e.target.value)} />
         <Button size="sm" variant="outline" disabled={busy || !date} onClick={() => schedule(date)}>Agendar data</Button>
       </div>
-      <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
+      <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
         <Textarea rows={2} placeholder="O que preciso relembrar?" value={note} onChange={(e) => setNote(e.target.value)} />
         <Select value={status} onValueChange={setStatus}>
           <SelectTrigger className="sm:w-44"><SelectValue /></SelectTrigger>
@@ -90,7 +90,7 @@ export function ReviewScheduler({ lesson, onDone }: { lesson: Lesson; onDone?: (
           </SelectContent>
         </Select>
       </div>
-      <div className="flex flex-wrap gap-2">
+      <div className="grid gap-2 sm:flex sm:flex-wrap">
         <Button size="sm" variant="outline" disabled={busy} onClick={() => schedule(date)}>Salvar revisão</Button>
         <Button size="sm" disabled={busy} onClick={complete} className="bg-success text-success-foreground hover:bg-success/90">Concluir revisão</Button>
         {lesson.review_status && <Button size="sm" variant="ghost" disabled={busy} onClick={clear}>Remover</Button>}

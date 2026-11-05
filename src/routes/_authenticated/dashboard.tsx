@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Layers, Plus } from "lucide-react";
@@ -9,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { EmptyState, ErrorBlock, LoadingBlock, PageHeader, ProgressBar } from "@/components/common";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
-  head: () => ({ meta: [{ title: "Dashboard — TradeStudy" }] }),
+  head: () => pageHead("Dashboard — TradeStudy", "Acompanhe seu progresso e continue seus estudos no TradeStudy."),
   component: Dashboard,
 });
 

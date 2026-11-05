@@ -11,6 +11,8 @@ export const Route = createFileRoute("/reset-password")({
   ssr: false,
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Redefinir senha — TradeStudy" },
       { name: "description", content: "Defina uma nova senha para sua conta TradeStudy." },
       { property: "og:title", content: "Redefinir senha — TradeStudy" },

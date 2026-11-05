@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
@@ -11,7 +12,7 @@ import { EmptyState, ErrorBlock, LoadingBlock, PageHeader } from "@/components/c
 import { ReviewScheduler } from "@/components/ReviewScheduler";
 
 export const Route = createFileRoute("/_authenticated/reviews")({
-  head: () => ({ meta: [{ title: "Revisões — TradeStudy" }] }),
+  head: () => pageHead("Revisões — TradeStudy", "Acompanhe e conclua suas revisões de aulas no TradeStudy."),
   component: ReviewsPage,
 });
 
@@ -45,8 +46,8 @@ function ReviewsPage() {
     <>
       <PageHeader title="Revisões" subtitle="Reveja o que estudou no momento certo." />
       <Tabs value={tab} onValueChange={(v) => { setTab(v as ReviewBucket); setOpen(null); }} className="mb-4">
-        <TabsList className="flex-wrap">
-          {TABS.map((t) => <TabsTrigger key={t.v} value={t.v}>{t.label} <span className="ml-1 font-mono text-xs">{counts[t.v]}</span></TabsTrigger>)}
+        <TabsList className="grid h-auto w-full grid-cols-2 gap-1 sm:inline-flex sm:w-auto">
+          {TABS.map((t) => <TabsTrigger className="min-h-11 sm:min-h-0" key={t.v} value={t.v}>{t.label} <span className="ml-1 font-mono text-xs">{counts[t.v]}</span></TabsTrigger>)}
         </TabsList>
       </Tabs>
       {list.length === 0 ? (
@@ -54,8 +55,8 @@ function ReviewsPage() {
       ) : (
         <div className="grid gap-3">
           {list.map((l) => (
-            <div key={l.id} className="panel p-4">
-              <div className="flex flex-wrap items-center justify-between gap-2">
+            <div key={l.id} className="panel min-w-0 break-words p-4">
+              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 sm:flex sm:justify-between">
                 <div className="min-w-0">
                   <div className="font-medium">{l.title}</div>
                   <div className="text-xs text-muted-foreground">
@@ -76,10 +77,10 @@ function ReviewsPage() {
       <h2 className="mb-3 mt-8 font-medium">Histórico de revisões concluídas</h2>
       {(logs.data ?? []).length === 0 ? <p className="text-sm text-muted-foreground">Nenhuma revisão concluída ainda.</p> : (
         <ul className="panel divide-y divide-border">
-          {logs.data!.map((r) => (
+          {(logs.data ?? []).map((r) => (
             <li key={r.id} className="flex justify-between gap-2 p-3 text-sm">
               <span className="truncate">{(r.lessons as { title: string } | null)?.title}</span>
-              <span className="font-mono text-xs text-muted-foreground">{new Date(r.reviewed_at).toLocaleDateString("pt-BR")}</span>
+              <span className="shrink-0 font-mono text-xs text-muted-foreground">{new Date(r.reviewed_at).toLocaleDateString("pt-BR")}</span>
             </li>
           ))}
         </ul>
@@ -111,7 +112,7 @@ function ReviewBody({ lesson }: { lesson: Lesson }) {
           <Block title="Dúvidas" text={n.data?.doubts_text} tone="text-warning" />
           {(d.data ?? []).length > 0 && (
             <ul className="space-y-1 text-sm">
-              {d.data!.map((x) => <li key={x.id}>• {x.question} <span className="text-xs text-muted-foreground">({x.status === "resolved" ? "resolvida" : "aberta"})</span></li>)}
+              {(d.data ?? []).map((x) => <li key={x.id}>• {x.question} <span className="text-xs text-muted-foreground">({x.status === "resolved" ? "resolvida" : "aberta"})</span></li>)}
             </ul>
           )}
           {!n.data && <p className="text-sm text-muted-foreground">Sem anotações salvas.</p>}
