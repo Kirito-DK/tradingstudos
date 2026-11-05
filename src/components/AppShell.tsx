@@ -85,7 +85,7 @@ export function AppShell() {
       </aside>
 
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="left" className="w-64 bg-sidebar p-4">
+        <SheetContent side="left" className="w-64 max-w-[85vw] bg-sidebar p-4">
           <SheetTitle className="sr-only">Menu</SheetTitle>
           <Logo className="mb-8 px-2" />
           <NavLinks onNavigate={() => setOpen(false)} />
@@ -93,12 +93,14 @@ export function AppShell() {
       </Sheet>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-20 flex h-14 items-center gap-3 border-b border-border bg-background/85 px-4 backdrop-blur md:px-6">
-          <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setOpen(true)} aria-label="Abrir menu">
+        <header className="sticky top-0 z-20 grid min-h-14 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 sm:flex sm:gap-3 border-b border-border bg-background/85 px-4 backdrop-blur md:px-6">
+          <div className="flex min-w-0 items-center gap-2 md:hidden">
+          <Button variant="ghost" size="icon" className="shrink-0" onClick={() => setOpen(true)} aria-label="Abrir menu">
             <Menu className="h-5 w-5" />
           </Button>
-          <Logo className="md:hidden" />
-          <div className="ml-auto flex items-center gap-3">
+          <Logo className="min-w-0" />
+          </div>
+          <div className="ml-auto flex shrink-0 items-center gap-2 sm:gap-3">
             <GlobalSearch />
             <div className="hidden items-center gap-2 sm:flex" title={`${done} de ${total} aulas concluídas`}>
               <span className="text-xs text-muted-foreground">Progresso</span>
@@ -126,7 +128,7 @@ export function AppShell() {
             </DropdownMenu>
           </div>
         </header>
-        <main className="mx-auto w-full max-w-6xl flex-1 p-4 md:p-8">
+        <main className="mx-auto w-full max-w-6xl flex-1 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:p-8">
           <Outlet />
         </main>
       </div>

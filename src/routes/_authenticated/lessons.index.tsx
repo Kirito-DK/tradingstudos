@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
@@ -8,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { EmptyState, ErrorBlock, LoadingBlock, PageHeader, StatusBadge } from "@/components/common";
 
 export const Route = createFileRoute("/_authenticated/lessons/")({
-  head: () => ({ meta: [{ title: "Todas as aulas — TradeStudy" }] }),
+  head: () => pageHead("Todas as aulas — TradeStudy", "Encontre suas aulas e acompanhe o andamento dos estudos no TradeStudy."),
   component: LessonsPage,
 });
 

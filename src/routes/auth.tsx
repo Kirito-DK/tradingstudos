@@ -11,6 +11,8 @@ export const Route = createFileRoute("/auth")({
   ssr: false,
   head: () => ({
     meta: [
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       { title: "Entrar — TradeStudy" },
       { name: "description", content: "Acesso privado à sua plataforma de estudos TradeStudy." },
       { property: "og:title", content: "Entrar — TradeStudy" },

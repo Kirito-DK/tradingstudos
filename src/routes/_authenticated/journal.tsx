@@ -1,3 +1,4 @@
+import { pageHead } from "@/lib/page-head";
 import { createFileRoute, useRouteContext } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
@@ -18,7 +19,7 @@ import { ConfirmDelete } from "@/components/ConfirmDelete";
 import { toISODate } from "@/lib/review";
 
 export const Route = createFileRoute("/_authenticated/journal")({
-  head: () => ({ meta: [{ title: "Diário de gráficos — TradeStudy" }] }),
+  head: () => pageHead("Diário de gráficos — TradeStudy", "Registre observações e aprendizados dos gráficos no TradeStudy."),
   component: JournalPage,
 });
 
@@ -31,7 +32,8 @@ function useSignedUrl(path: string | null) {
     enabled: !!path,
     staleTime: 50 * 60 * 1000,
     queryFn: async () => {
-      const { data, error } = await supabase.storage.from("charts").createSignedUrl(path!, 3600);
+      if (!path) throw new Error("Imagem não informada.");
+      const { data, error } = await supabase.storage.from("charts").createSignedUrl(path, 3600);
       if (error) throw new Error(error.message);
       return data.signedUrl;
     },
@@ -64,7 +66,7 @@ function JournalPage() {
     <>
       <PageHeader title="Diário de gráficos" subtitle="Registre exemplos práticos e hipóteses de mercado — ferramenta de aprendizado, não de recomendação."
         actions={<Button onClick={() => { setEdit(null); setOpen(true); }}><Plus className="mr-1 h-4 w-4" />Novo registro</Button>} />
-      <div className="mb-4 grid gap-2 md:grid-cols-[1fr_auto]">
+      <div className="mb-4 grid gap-2 md:grid-cols-[minmax(0,1fr)_auto]">
         <Input placeholder="Buscar registros..." value={q} onChange={(e) => setQ(e.target.value)} />
         <Select value={asset} onValueChange={setAsset}>
           <SelectTrigger className="md:w-40"><SelectValue /></SelectTrigger>
@@ -85,8 +87,9 @@ function JournalPage() {
       <EntryDialog open={open} onOpenChange={setOpen} entry={edit} />
       <ConfirmDelete open={!!del} onOpenChange={(o) => !o && setDel(null)} title="Excluir registro?" description="O registro e a imagem anexada serão excluídos permanentemente."
         onConfirm={async () => {
-          if (del!.image_path) await supabase.storage.from("charts").remove([del!.image_path]);
-          const { error } = await supabase.from("chart_entries").delete().eq("id", del!.id);
+          if (!del) return;
+          if (del.image_path) await supabase.storage.from("charts").remove([del.image_path]);
+          const { error } = await supabase.from("chart_entries").delete().eq("id", del.id);
           if (error) { toast.error("Erro ao excluir."); return; }
           toast.success("Registro excluído.");
           qc.invalidateQueries({ queryKey: ["journal"] });
@@ -98,15 +101,15 @@ function JournalPage() {
 function EntryCard({ e, onEdit, onDelete }: { e: Entry; onEdit: () => void; onDelete: () => void }) {
   const img = useSignedUrl(e.image_path);
   return (
-    <div className="panel flex flex-col overflow-hidden">
-      {e.image_path && (img.data ? <a href={img.data} target="_blank" rel="noopener noreferrer"><img src={img.data} alt={e.title} className="aspect-video w-full object-cover" /></a> : <div className="aspect-video animate-pulse bg-muted" />)}
+    <div className="panel min-w-0 flex flex-col overflow-hidden break-words">
+      {e.image_path && (img.data ? <a href={img.data} target="_blank" rel="noopener noreferrer"><img src={img.data} alt={e.title} className="aspect-video w-full object-contain bg-muted" /></a> : <div className="aspect-video animate-pulse bg-muted" />)}
       <div className="flex flex-1 flex-col gap-2 p-4">
-        <div className="flex items-start justify-between gap-2">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-2">
           <div className="min-w-0">
             <div className="font-medium">{e.title}</div>
             <div className="font-mono text-xs text-muted-foreground">{new Date(e.entry_date + "T12:00").toLocaleDateString("pt-BR")}{e.asset && ` · ${e.asset}`}{e.timeframe && ` · ${e.timeframe}`}</div>
           </div>
-          <div className="flex">
+          <div className="flex shrink-0">
             <Button size="icon" variant="ghost" onClick={onEdit} aria-label="Editar"><Pencil className="h-4 w-4" /></Button>
             <Button size="icon" variant="ghost" onClick={onDelete} aria-label="Excluir"><Trash2 className="h-4 w-4 text-destructive" /></Button>
           </div>
@@ -196,7 +199,7 @@ function EntryDialog({ open, onOpenChange, entry }: { open: boolean; onOpenChang
   const none = "__none";
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
+      <DialogContent className="max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-2xl overflow-y-auto rounded-lg p-4 sm:p-6">
         <form onSubmit={save} className="space-y-4">
           <DialogHeader><DialogTitle>{entry ? "Editar registro" : "Novo registro"}</DialogTitle></DialogHeader>
           <div className="grid gap-3 sm:grid-cols-2">
@@ -240,7 +243,7 @@ function EntryDialog({ open, onOpenChange, entry }: { open: boolean; onOpenChang
               </label>
             )}
           </div>
-          <DialogFooter>
+          <DialogFooter className="gap-2">
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>Cancelar</Button>
             <Button type="submit" disabled={busy}>{busy ? "Salvando..." : "Salvar"}</Button>
           </DialogFooter>

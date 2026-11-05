@@ -1,0 +1,17 @@
+{
+  "id": "/",
+  "name": "TradeStudy",
+  "short_name": "TradeStudy",
+  "description": "Seus estudos do mercado financeiro.",
+  "lang": "pt-BR",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "theme_color": "#070f1c",
+  "background_color": "#070f1c",
+  "icons": [
+    { "src": "/icons/tradestudy-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/tradestudy-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/tradestudy-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

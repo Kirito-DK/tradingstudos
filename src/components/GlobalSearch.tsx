@@ -50,18 +50,18 @@ export function GlobalSearch() {
 
   return (
     <>
-      <Button variant="outline" size="sm" onClick={() => setOpen(true)} className="gap-2 text-muted-foreground">
+      <Button variant="outline" size="sm" onClick={() => setOpen(true)} aria-label="Buscar nos estudos" className="shrink-0 gap-2 text-muted-foreground">
         <Search className="h-4 w-4" /><span className="hidden lg:inline">Buscar</span><kbd className="hidden font-mono text-[10px] lg:inline">Ctrl K</kbd>
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-xl">
+        <DialogContent className="max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-xl overflow-y-auto rounded-lg">
           <DialogTitle className="sr-only">Busca global</DialogTitle>
           <Input autoFocus placeholder="Buscar módulos, aulas, anotações, dúvidas, diário..." value={q} onChange={(e) => setQ(e.target.value)} />
           <div className="max-h-[60vh] space-y-4 overflow-y-auto">
             {term.length < 2 ? <p className="text-sm text-muted-foreground">Digite ao menos 2 caracteres.</p>
               : res.isLoading ? <p className="text-sm text-muted-foreground">Buscando...</p>
               : (res.data ?? []).length === 0 ? <p className="text-sm text-muted-foreground">Nenhum resultado.</p>
-              : res.data!.map((g) => (
+              : (res.data ?? []).map((g) => (
                 <div key={g.name}>
                   <div className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">{g.name}</div>
                   {g.hits.map((h, i) => (
