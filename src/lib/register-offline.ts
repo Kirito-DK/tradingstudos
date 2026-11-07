@@ -1,7 +1,7 @@
 export function refuseOfflineWorker(prod: boolean, hostname: string, framed: boolean, disabled: boolean) {
   const host = hostname.toLowerCase();
   const domains = ["lovable.app", "gpt-eng.com", "gptengineer.run"];
-  const label = host.split(".")[0];
+  const label = host.split(".")[0] ?? "";
   return !prod || framed || disabled ||
     domains.some((d) => host.endsWith(`.${d}`) && (/^(?:id-preview|preview)(?:-[a-z0-9]+)?--.+$/.test(label) || /^project--.+-dev$/.test(label))) ||
     ["lovableproject.com", "lovableproject-dev.com", "beta.lovable.dev"].some((d) => host === d || host.endsWith(`.${d}`));
