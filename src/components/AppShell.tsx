@@ -44,9 +44,10 @@ const NAV = [
 ] as const;
 
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
+  const offline = useOffline();
   return (
     <nav className="flex flex-col gap-1">
-      {NAV.map(({ to, label, icon: Icon }) => (
+      {NAV.filter((n) => !offline || ["/dashboard", "/lessons", "/notebook", "/reviews"].includes(n.to)).map(({ to, label, icon: Icon }) => (
         <Link
           key={to}
           to={to}

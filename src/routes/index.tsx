@@ -1,5 +1,6 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
+import { isOffline, offlineUser } from "@/lib/offline";
 
 export const Route = createFileRoute("/")({
   ssr: false,
@@ -14,6 +15,7 @@ export const Route = createFileRoute("/")({
     ],
   }),
   beforeLoad: async () => {
+    if (isOffline()) throw redirect({ to: await offlineUser() ? "/dashboard" : "/auth" });
     const { data } = await supabase.auth.getSession();
     throw redirect({ to: data.session ? "/dashboard" : "/auth" });
   },

@@ -17,7 +17,7 @@ export default defineConfig({
       globPatterns: ["**/*.{js,css,woff2,png,ico}"],
       maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
       additionalManifestEntries: [{ url: "/dashboard", revision: null }],
-      navigateFallback: undefined,
+      navigateFallback: null,
       cleanupOutdatedCaches: true, skipWaiting: true, clientsClaim: true,
       runtimeCaching: [
         {

@@ -50,7 +50,8 @@ export async function offlineUser(): Promise<User | null> {
 export async function prepareOfflineCache(user: User, qc: QueryClient) {
   if (owner?.id === user.id) return;
   stop?.();
-  if (owner && owner.id !== user.id) await clearOfflineCache(qc);
+  const previousId = owner?.id ?? await get<string>(OWNER).catch(() => undefined);
+  if (previousId && previousId !== user.id) await clearOfflineCache(qc);
   owner = user;
   const snapshot = await get<Snapshot>(key(user.id)).catch(() => undefined);
   entries = snapshot?.entries ?? [];
@@ -58,9 +59,12 @@ export async function prepareOfflineCache(user: User, qc: QueryClient) {
   const persist = () => {
     if (!owner) return;
     const savedOwner = owner;
-    entries = qc.getQueryCache().getAll()
+    const current = qc.getQueryCache().getAll()
       .filter((q) => allowed.has(String(q.queryKey[0])) && q.state.status === "success")
       .map((q) => ({ queryKey: q.queryKey, data: q.state.data, updatedAt: q.state.dataUpdatedAt }));
+    const merged = new Map(entries.map((e) => [JSON.stringify(e.queryKey), e]));
+    for (const e of current) merged.set(JSON.stringify(e.queryKey), e);
+    entries = [...merged.values()];
     const saved = { user: savedOwner, entries: [...entries] };
     writing = writing.then(async () => { await set(key(savedOwner.id), saved); await set(OWNER, savedOwner.id); }).catch(() => undefined);
   };

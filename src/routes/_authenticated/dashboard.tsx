@@ -1,4 +1,5 @@
 import { pageHead } from "@/lib/page-head";
+import { useOffline } from "@/hooks/use-offline";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { Layers, Plus } from "lucide-react";
@@ -25,11 +26,13 @@ function Stat({ label, value, tone }: { label: string; value: string | number; t
 }
 
 function Dashboard() {
+  const offline = useOffline();
   const mods = useQuery(modulesQuery());
   const lq = useQuery(allLessonsQuery());
   const doubts = useQuery(openDoubtsCountQuery());
   const notes = useQuery(recentNotesQuery());
   const activity = useQuery({
+    enabled: !offline,
     queryKey: ["activity"],
     queryFn: async () => {
       const since = addDaysISO(-27);
