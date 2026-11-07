@@ -16,14 +16,15 @@ export default defineConfig({
       globDirectory: "dist/client",
       globPatterns: ["**/*.{js,css,woff2,png,ico}"],
       maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
-      additionalManifestEntries: [{ url: "/dashboard", revision: null }],
+      // A separate shell cache key must not intercept normal /dashboard navigations.
+      additionalManifestEntries: [{ url: "/dashboard?offline-shell=1", revision: String(Date.now()) }],
       navigateFallback: null,
       cleanupOutdatedCaches: true, skipWaiting: true, clientsClaim: true,
       runtimeCaching: [
         {
           urlPattern: ({ request, url }) => request.mode === "navigate" && url.origin === self.location.origin && !url.pathname.startsWith("/~oauth") && !url.pathname.startsWith("/api/"),
           handler: "NetworkFirst",
-          options: { cacheName: "tradestudy-pages-v1", networkTimeoutSeconds: 3, precacheFallback: { fallbackURL: "/dashboard" }, expiration: { maxEntries: 40 }, cacheableResponse: { statuses: [200] } },
+          options: { cacheName: "tradestudy-pages-v1", networkTimeoutSeconds: 3, precacheFallback: { fallbackURL: "/dashboard?offline-shell=1" }, expiration: { maxEntries: 40 }, cacheableResponse: { statuses: [200] } },
         },
         {
           urlPattern: ({ url }) => url.origin === self.location.origin && /\/assets\/[^/]+-[A-Za-z0-9_-]{8,}\.(js|css|woff2)$/.test(url.pathname),
