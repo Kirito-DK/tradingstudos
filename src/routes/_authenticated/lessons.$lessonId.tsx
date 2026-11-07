@@ -110,7 +110,7 @@ function LessonView({ lessonId }: { lessonId: string }) {
         </div>
       </div>
 
-      <VideoDownload url={l.youtube_url} />
+      <VideoDownload url={l.download_url} authorized={l.download_authorized} title={l.title} />
       {l.youtube_url && !offline ? (
         videoId ? (
           <div className="space-y-2">

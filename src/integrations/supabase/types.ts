@@ -209,6 +209,8 @@ export type Database = {
           completed_at: string | null
           created_at: string
           description: string | null
+          download_authorized: boolean
+          download_url: string | null
           duration_minutes: number | null
           id: string
           last_accessed_at: string | null
@@ -230,6 +232,8 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           description?: string | null
+          download_authorized?: boolean
+          download_url?: string | null
           duration_minutes?: number | null
           id?: string
           last_accessed_at?: string | null
@@ -251,6 +255,8 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           description?: string | null
+          download_authorized?: boolean
+          download_url?: string | null
           duration_minutes?: number | null
           id?: string
           last_accessed_at?: string | null

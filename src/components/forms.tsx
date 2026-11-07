@@ -90,7 +90,7 @@ export function LessonDialog({
   nextPosition: number;
 }) {
   const qc = useQueryClient();
-  const [f, setF] = useState({ title: "", description: "", youtube_url: "", quick_notes: "", duration: "", status: "not_started" });
+  const [f, setF] = useState({ title: "", description: "", youtube_url: "", download_url: "", download_authorized: false, quick_notes: "", duration: "", status: "not_started" });
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -99,6 +99,8 @@ export function LessonDialog({
         title: lesson?.title ?? "",
         description: lesson?.description ?? "",
         youtube_url: lesson?.youtube_url ?? "",
+        download_url: lesson?.download_url ?? "",
+        download_authorized: lesson?.download_authorized ?? false,
         quick_notes: lesson?.quick_notes ?? "",
         duration: lesson?.duration_minutes?.toString() ?? "",
         status: lesson?.status ?? "not_started",
@@ -115,6 +117,18 @@ export function LessonDialog({
     if (!title) { toast.error("Informe o título da aula."); return; }
     const url = f.youtube_url.trim();
     if (url && !parseYouTubeId(url)) { toast.error("Link do YouTube inválido."); return; }
+    const downloadUrl = f.download_url.trim();
+    if (downloadUrl) {
+      let parsedDownloadUrl: URL;
+      try { parsedDownloadUrl = new URL(downloadUrl); }
+      catch { toast.error("Informe um endereço válido para o arquivo MP4."); return; }
+      if (parsedDownloadUrl.protocol !== "https:" || ["youtube.com", "www.youtube.com", "youtu.be", "m.youtube.com"].includes(parsedDownloadUrl.hostname.toLowerCase())) {
+        toast.error("A fonte precisa ser um link HTTPS direto, fora do YouTube."); return;
+      }
+      if (!f.download_authorized) {
+        toast.error("Confirme que existe autorização para disponibilizar este arquivo."); return;
+      }
+    }
     const duration = f.duration.trim() ? Number(f.duration) : null;
     if (duration !== null && (!Number.isInteger(duration) || duration < 0))
       { toast.error("Duração deve ser um número inteiro de minutos."); return; }
@@ -123,6 +137,8 @@ export function LessonDialog({
       title,
       description: f.description.trim() || null,
       youtube_url: url || null,
+      download_url: downloadUrl || null,
+      download_authorized: Boolean(downloadUrl && f.download_authorized),
       quick_notes: f.quick_notes.trim() || null,
       duration_minutes: duration,
       status: f.status,
@@ -153,6 +169,22 @@ export function LessonDialog({
           <div className="space-y-2">
             <Label htmlFor="lu">Link do YouTube (opcional)</Label>
             <Input id="lu" value={f.youtube_url} onChange={set("youtube_url")} placeholder="https://youtube.com/watch?v=..." />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="lmp4">Link direto do arquivo MP4 (opcional)</Label>
+            <Input id="lmp4" type="url" value={f.download_url} onChange={set("download_url")} placeholder="https://site-do-criador.com/aula.mp4" />
+            <label className="flex items-start gap-2 text-xs text-muted-foreground">
+              <input
+                type="checkbox"
+                className="mt-0.5 h-4 w-4 accent-primary"
+                checked={f.download_authorized}
+                onChange={(e) => setF((p) => ({ ...p, download_authorized: e.target.checked }))}
+              />
+              Confirmo que tenho autorização para disponibilizar este arquivo para download.
+            </label>
+            <p className="text-xs text-muted-foreground">
+              Use somente um arquivo MP4 fornecido pelo criador ou por uma fonte que permita expressamente o download. O link do YouTube não serve como fonte MP4.
+            </p>
           </div>
           <div className="space-y-2">
             <Label htmlFor="ld">Descrição</Label>
