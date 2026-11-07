@@ -1,4 +1,6 @@
 # TradeStudy roadmap
+- [ ] Cache offline de aulas, anotações e revisões já carregadas, somente consulta
+- [ ] Botão individual de download de vídeo por aula usando mecanismos oficiais da fonte
 - [x] Etapa 1: banco, login privado, módulos, aulas, página de estudo com anotações automáticas
 - [x] Revisar o projeto e apontar pendências
 - [x] Etapa 2: dashboard completo, caderno, dúvidas, revisões
