@@ -11,6 +11,8 @@ import {
 import { useEffect, type ReactNode } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { registerOfflineWorker } from "@/lib/register-offline";
+import { clearOfflineCache } from "@/lib/offline";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -131,9 +133,11 @@ function RootComponent() {
   const router = useRouter();
 
   useEffect(() => {
+    void registerOfflineWorker().catch(() => undefined);
     const { data } = supabase.auth.onAuthStateChange((event) => {
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
       router.invalidate();
+      if (event === "SIGNED_OUT") void clearOfflineCache(queryClient);
       if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
     });
     return () => data.subscription.unsubscribe();

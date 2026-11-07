@@ -1,4 +1,6 @@
 # TradeStudy roadmap
+- [x] Cache offline de aulas, anotações e revisões já carregadas, somente consulta; dados reais e reabertura verificados, funcionamento do app instalado exige publicação
+- [x] Botão individual de vídeo com aviso de indisponibilidade; YouTube não oferece download de arquivo por API oficial
 - [x] Etapa 1: banco, login privado, módulos, aulas, página de estudo com anotações automáticas
 - [x] Revisar o projeto e apontar pendências
 - [x] Etapa 2: dashboard completo, caderno, dúvidas, revisões

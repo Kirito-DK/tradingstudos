@@ -17,6 +17,8 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { allLessonsQuery } from "@/lib/data";
 import { progressPercent } from "@/lib/progress";
+import { useOffline } from "@/hooks/use-offline";
+import { clearOfflineCache } from "@/lib/offline";
 import { Logo } from "./Logo";
 import { GlobalSearch } from "./GlobalSearch";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
@@ -42,9 +44,10 @@ const NAV = [
 ] as const;
 
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
+  const offline = useOffline();
   return (
     <nav className="flex flex-col gap-1">
-      {NAV.map(({ to, label, icon: Icon }) => (
+      {NAV.filter((n) => !offline || ["/dashboard", "/lessons", "/notebook", "/reviews"].includes(n.to)).map(({ to, label, icon: Icon }) => (
         <Link
           key={to}
           to={to}
@@ -61,6 +64,7 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
 }
 
 export function AppShell() {
+  const offline = useOffline();
   const [open, setOpen] = useState(false);
   const { user } = useRouteContext({ from: "/_authenticated" });
   const navigate = useNavigate();
@@ -71,9 +75,8 @@ export function AppShell() {
   const pct = progressPercent(done, total);
 
   async function signOut() {
-    await queryClient.cancelQueries();
-    queryClient.clear();
-    await supabase.auth.signOut();
+    await clearOfflineCache(queryClient);
+    await supabase.auth.signOut({ scope: "local" });
     navigate({ to: "/auth", replace: true });
   }
 
@@ -129,6 +132,7 @@ export function AppShell() {
           </div>
         </header>
         <main className="mx-auto w-full max-w-6xl flex-1 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] md:p-8">
+          {offline && <p role="status" className="mb-4 border-b border-warning/40 pb-3 text-sm text-warning">Sem internet · Somente consulta do conteúdo já carregado. Vídeos indisponíveis.</p>}
           <Outlet />
         </main>
       </div>
@@ -140,9 +144,8 @@ export function useSignOut() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   return async () => {
-    await queryClient.cancelQueries();
-    queryClient.clear();
-    await supabase.auth.signOut();
+    await clearOfflineCache(queryClient);
+    await supabase.auth.signOut({ scope: "local" });
     navigate({ to: "/auth", replace: true });
   };
 }

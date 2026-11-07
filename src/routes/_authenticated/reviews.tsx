@@ -1,3 +1,4 @@
+import { offlineRead } from "@/lib/offline";
 import { pageHead } from "@/lib/page-head";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
@@ -27,11 +28,11 @@ function ReviewsPage() {
   const lq = useQuery(allLessonsQuery());
   const logs = useQuery({
     queryKey: ["reviewLogs"],
-    queryFn: async () => {
+    queryFn: async () => offlineRead(["reviewLogs"], async () => {
       const { data, error } = await supabase.from("review_logs").select("*, lessons(title)").order("reviewed_at", { ascending: false }).limit(30);
       if (error) throw new Error(error.message);
       return data;
-    },
+    }),
   });
   const [tab, setTab] = useState<ReviewBucket>("overdue");
   const [open, setOpen] = useState<string | null>(null);
@@ -75,6 +76,7 @@ function ReviewsPage() {
         </div>
       )}
       <h2 className="mb-3 mt-8 font-medium">Histórico de revisões concluídas</h2>
+      {logs.error && <ErrorBlock error={logs.error} />}
       {(logs.data ?? []).length === 0 ? <p className="text-sm text-muted-foreground">Nenhuma revisão concluída ainda.</p> : (
         <ul className="panel divide-y divide-border">
           {(logs.data ?? []).map((r) => (
@@ -104,7 +106,7 @@ function ReviewBody({ lesson }: { lesson: Lesson }) {
   const d = useQuery(lessonDoubtsQuery(lesson.id));
   return (
     <div className="mt-4 space-y-4 border-t border-border pt-4">
-      {n.isLoading ? <LoadingBlock /> : (
+      {n.isLoading ? <LoadingBlock /> : n.error ? <ErrorBlock error={n.error} /> : (
         <div className="space-y-3">
           <Block title="Resumo" text={n.data?.summary} />
           <Block title="Anotações" text={n.data?.free_notes} />

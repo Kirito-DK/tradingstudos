@@ -1,3 +1,5 @@
+import { useOffline } from "@/hooks/use-offline";
+import { isOffline } from "@/lib/offline";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
@@ -11,6 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 /** Schedule / complete a review for a lesson. Never completes automatically. */
 export function ReviewScheduler({ lesson, onDone }: { lesson: Lesson; onDone?: () => void }) {
+  const offline = useOffline();
   const qc = useQueryClient();
   const [date, setDate] = useState(lesson.next_review_at ?? "");
   const [note, setNote] = useState(lesson.review_note ?? "");
@@ -24,7 +27,7 @@ export function ReviewScheduler({ lesson, onDone }: { lesson: Lesson; onDone?: (
   };
 
   async function schedule(d: string) {
-    if (busy) return;
+    if (busy || isOffline()) return;
     setBusy(true);
     const st = status === "reviewed" ? "pending" : status;
     const { error } = await supabase.from("lessons").update({
@@ -38,7 +41,7 @@ export function ReviewScheduler({ lesson, onDone }: { lesson: Lesson; onDone?: (
   }
 
   async function complete() {
-    if (busy) return;
+    if (busy || isOffline()) return;
     setBusy(true);
     const now = new Date().toISOString();
     const log = await supabase.from("review_logs").insert({ lesson_id: lesson.id, note: note.trim() || null });
@@ -54,6 +57,7 @@ export function ReviewScheduler({ lesson, onDone }: { lesson: Lesson; onDone?: (
   }
 
   async function clear() {
+    if (isOffline()) return;
     setBusy(true);
     const { error } = await supabase.from("lessons").update({ review_status: null, next_review_at: null, needs_review: false, review_note: null }).eq("id", lesson.id);
     setBusy(false);
@@ -74,14 +78,14 @@ export function ReviewScheduler({ lesson, onDone }: { lesson: Lesson; onDone?: (
       </div>
       <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
         {QUICK_REVIEWS.map((q) => (
-          <Button key={q.days} size="sm" variant="outline" disabled={busy} onClick={() => schedule(addDaysISO(q.days))}>{q.label}</Button>
+          <Button key={q.days} size="sm" variant="outline" disabled={busy || offline} onClick={() => schedule(addDaysISO(q.days))}>{q.label}</Button>
         ))}
-        <Input type="date" className="min-w-0 sm:w-40" value={date} onChange={(e) => setDate(e.target.value)} />
-        <Button size="sm" variant="outline" disabled={busy || !date} onClick={() => schedule(date)}>Agendar data</Button>
+        <Input disabled={offline} type="date" className="min-w-0 sm:w-40" value={date} onChange={(e) => setDate(e.target.value)} />
+        <Button size="sm" variant="outline" disabled={busy || offline || !date} onClick={() => schedule(date)}>Agendar data</Button>
       </div>
       <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
-        <Textarea rows={2} placeholder="O que preciso relembrar?" value={note} onChange={(e) => setNote(e.target.value)} />
-        <Select value={status} onValueChange={setStatus}>
+        <Textarea readOnly={offline} rows={2} placeholder="O que preciso relembrar?" value={note} onChange={(e) => setNote(e.target.value)} />
+        <Select disabled={offline} value={status} onValueChange={setStatus}>
           <SelectTrigger className="sm:w-44"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="later">Revisar depois</SelectItem>
@@ -91,9 +95,9 @@ export function ReviewScheduler({ lesson, onDone }: { lesson: Lesson; onDone?: (
         </Select>
       </div>
       <div className="grid gap-2 sm:flex sm:flex-wrap">
-        <Button size="sm" variant="outline" disabled={busy} onClick={() => schedule(date)}>Salvar revisão</Button>
-        <Button size="sm" disabled={busy} onClick={complete} className="bg-success text-success-foreground hover:bg-success/90">Concluir revisão</Button>
-        {lesson.review_status && <Button size="sm" variant="ghost" disabled={busy} onClick={clear}>Remover</Button>}
+        <Button size="sm" variant="outline" disabled={busy || offline} onClick={() => schedule(date)}>Salvar revisão</Button>
+        <Button size="sm" disabled={busy || offline} onClick={complete} className="bg-success text-success-foreground hover:bg-success/90">Concluir revisão</Button>
+        {lesson.review_status && <Button size="sm" variant="ghost" disabled={busy || offline} onClick={clear}>Remover</Button>}
       </div>
     </div>
   );

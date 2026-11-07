@@ -1,3 +1,5 @@
+import { offlineRead, isOffline } from "@/lib/offline";
+import { useOffline } from "@/hooks/use-offline";
 import { pageHead } from "@/lib/page-head";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -26,6 +28,7 @@ function useDebounced<T>(v: T, ms = 350) {
 const clean = (s: string) => s.replace(/[%,()]/g, " ").trim();
 
 function NotebookPage() {
+  const offline = useOffline();
   const qc = useQueryClient();
   const mods = useQuery(modulesQuery());
   const lessons = useQuery(allLessonsQuery());
@@ -39,7 +42,7 @@ function NotebookPage() {
 
   const notes = useQuery({
     queryKey: ["notes", "search", dq, mod, lesson, period, onlyImportant, onlyDoubts],
-    queryFn: async () => {
+    queryFn: async () => offlineRead(["notes", "search", dq, mod, lesson, period, onlyImportant, onlyDoubts], async () => {
       let query = supabase.from("lesson_notes").select("*, lessons!inner(id, title, module_id)").order("updated_at", { ascending: false }).limit(100);
       const term = clean(dq);
       if (term) query = query.or(["free_notes", "summary", "doubts_text", "practical"].map((c) => `${c}.ilike.%${term}%`).join(","));
@@ -51,13 +54,14 @@ function NotebookPage() {
       const { data, error } = await query;
       if (error) throw new Error(error.message);
       return data;
-    },
+    }),
   });
 
   const modName = new Map((mods.data ?? []).map((m) => [m.id, m.title]));
   const lessonOpts = (lessons.data ?? []).filter((l) => mod === "all" || l.module_id === mod);
 
   async function toggleImportant(id: string, v: boolean) {
+    if (isOffline()) return;
     const { error } = await supabase.from("lesson_notes").update({ important: v }).eq("id", id);
     if (error) toast.error("Erro ao atualizar.");
     else qc.invalidateQueries({ queryKey: ["notes"] });
@@ -109,7 +113,7 @@ function NotebookPage() {
                     <div className="truncate font-medium">{l.title}</div>
                     <div className="truncate text-xs text-muted-foreground">{modName.get(l.module_id)} · {new Date(n.updated_at).toLocaleString("pt-BR")}</div>
                   </div>
-                  <Button variant="ghost" size="icon" className="shrink-0" onClick={() => toggleImportant(n.id, !n.important)} aria-label={n.important ? "Remover marca de importante" : "Marcar como importante"} aria-pressed={n.important}>
+                  <Button variant="ghost" size="icon" className="shrink-0" disabled={offline} onClick={() => toggleImportant(n.id, !n.important)} aria-label={n.important ? "Remover marca de importante" : "Marcar como importante"} aria-pressed={n.important}>
                     <Star className={`h-4 w-4 ${n.important ? "fill-warning text-warning" : "text-muted-foreground"}`} />
                   </Button>
                 </div>
@@ -117,7 +121,7 @@ function NotebookPage() {
                 {n.free_notes && <p className="line-clamp-3 whitespace-pre-line text-sm text-muted-foreground">{n.free_notes}</p>}
                 {n.practical && <p className="line-clamp-2 text-sm"><span className="text-muted-foreground">Prática: </span>{n.practical}</p>}
                 {n.doubts_text && <p className="line-clamp-2 text-sm text-warning">Dúvidas: {n.doubts_text}</p>}
-                <Link to="/lessons/$lessonId" params={{ lessonId: l.id }} className="mt-auto text-sm text-primary hover:underline">Abrir e editar →</Link>
+                <Link to="/lessons/$lessonId" params={{ lessonId: l.id }} className="mt-auto text-sm text-primary hover:underline">{offline ? "Consultar →" : "Abrir e editar →"}</Link>
               </div>
             );
           })}

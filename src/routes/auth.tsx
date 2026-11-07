@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Logo } from "@/components/Logo";
+import { isOffline, offlineUser } from "@/lib/offline";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -21,6 +22,10 @@ export const Route = createFileRoute("/auth")({
     ],
   }),
   beforeLoad: async () => {
+    if (isOffline()) {
+      if (await offlineUser()) throw redirect({ to: "/dashboard" });
+      return;
+    }
     const { data } = await supabase.auth.getSession();
     if (data.session) throw redirect({ to: "/dashboard" });
   },

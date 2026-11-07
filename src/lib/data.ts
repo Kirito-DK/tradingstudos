@@ -1,3 +1,4 @@
+import { offlineRead } from "./offline";
 import { queryOptions } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
@@ -16,56 +17,57 @@ export const modulesQuery = () =>
   queryOptions({
     queryKey: ["modules"],
     queryFn: async () =>
-      check(await supabase.from("modules").select("*").order("position").order("created_at")),
+      offlineRead(["modules"], async () => check(await supabase.from("modules").select("*").order("position").order("created_at"))),
   });
 
 export const allLessonsQuery = () =>
   queryOptions({
     queryKey: ["lessons"],
     queryFn: async () =>
-      check(await supabase.from("lessons").select("*").order("position").order("created_at")),
+      offlineRead(["lessons"], async () => check(await supabase.from("lessons").select("*").order("position").order("created_at"))),
   });
 
 export const lessonQuery = (id: string) =>
   queryOptions({
     queryKey: ["lesson", id],
-    queryFn: async (): Promise<Lesson | null> => check(await supabase.from("lessons").select("*").eq("id", id).maybeSingle()),
+    queryFn: async (): Promise<Lesson | null> => offlineRead(["lesson", id], async () => check(await supabase.from("lessons").select("*").eq("id", id).maybeSingle())),
   });
 
 export const notesQuery = (lessonId: string) =>
   queryOptions({
     queryKey: ["notes", lessonId],
     queryFn: async (): Promise<LessonNotes | null> =>
-      check(await supabase.from("lesson_notes").select("*").eq("lesson_id", lessonId).maybeSingle()),
-    staleTime: 0,
+      offlineRead(["notes", lessonId], async () => check(await supabase.from("lesson_notes").select("*").eq("lesson_id", lessonId).maybeSingle())),
+    
   });
 
 export const lessonDoubtsQuery = (lessonId: string) =>
   queryOptions({
     queryKey: ["doubts", lessonId],
-    queryFn: async () =>
+    queryFn: async () => offlineRead(["doubts", lessonId], async () =>
       check(
         await supabase.from("doubts").select("*").eq("lesson_id", lessonId).order("created_at"),
-      ),
+      )),
   });
 
 export const recentNotesQuery = () =>
   queryOptions({
     queryKey: ["notes", "recent"],
-    queryFn: async () =>
+    queryFn: async () => offlineRead(["notes", "recent"], async () =>
       check(
         await supabase
           .from("lesson_notes")
           .select("*, lessons(title)")
           .order("updated_at", { ascending: false })
           .limit(5),
-      ),
+      )),
   });
 
 export const openDoubtsCountQuery = () =>
   queryOptions({
     queryKey: ["doubts", "openCount"],
     queryFn: async () => {
+      if (typeof navigator !== "undefined" && !navigator.onLine) return 0;
       const { count, error } = await supabase
         .from("doubts")
         .select("id", { count: "exact", head: true })
