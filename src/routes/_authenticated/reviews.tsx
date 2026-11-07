@@ -76,6 +76,7 @@ function ReviewsPage() {
         </div>
       )}
       <h2 className="mb-3 mt-8 font-medium">Histórico de revisões concluídas</h2>
+      {logs.error && <ErrorBlock error={logs.error} />}
       {(logs.data ?? []).length === 0 ? <p className="text-sm text-muted-foreground">Nenhuma revisão concluída ainda.</p> : (
         <ul className="panel divide-y divide-border">
           {(logs.data ?? []).map((r) => (
