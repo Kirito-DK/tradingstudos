@@ -1,3 +1,6 @@
+import { useOffline } from "@/hooks/use-offline";
+import { isOffline } from "@/lib/offline";
+import { VideoDownload } from "@/components/VideoDownload";
 import { pageHead } from "@/lib/page-head";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -27,6 +30,7 @@ function LessonPage() {
 }
 
 function LessonView({ lessonId }: { lessonId: string }) {
+  const offline = useOffline();
   const qc = useQueryClient();
   const lesson = useQuery(lessonQuery(lessonId));
   const all = useQuery(allLessonsQuery());
@@ -37,6 +41,7 @@ function LessonView({ lessonId }: { lessonId: string }) {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
+    if (isOffline()) return;
     void supabase.from("lessons").update({ last_accessed_at: new Date().toISOString() }).eq("id", lessonId);
   }, [lessonId]);
 
@@ -53,6 +58,7 @@ function LessonView({ lessonId }: { lessonId: string }) {
   const videoId = parseYouTubeId(l.youtube_url);
 
   async function setStatus(status: string) {
+    if (isOffline()) return;
     setBusy(true);
     const { error } = await supabase.from("lessons").update({
       status, completed_at: status === "completed" ? new Date().toISOString() : null,
@@ -87,7 +93,7 @@ function LessonView({ lessonId }: { lessonId: string }) {
           {l.description && <p className="mt-1 text-sm text-muted-foreground">{l.description}</p>}
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Select value={l.status} onValueChange={setStatus} disabled={busy}>
+          <Select value={l.status} onValueChange={setStatus} disabled={busy || offline}>
             <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="not_started">Não iniciada</SelectItem>
@@ -96,15 +102,16 @@ function LessonView({ lessonId }: { lessonId: string }) {
             </SelectContent>
           </Select>
           {l.status !== "completed" && (
-            <Button variant="outline" disabled={busy} onClick={() => setStatus("completed")} className="border-success/50 text-success">
+            <Button variant="outline" disabled={busy || offline} onClick={() => setStatus("completed")} className="border-success/50 text-success">
               <CheckCircle2 className="mr-1 h-4 w-4" />Concluir
             </Button>
           )}
-          <Button variant="ghost" size="icon" onClick={() => setEditOpen(true)} aria-label="Editar aula"><Pencil className="h-4 w-4" /></Button>
+          <Button variant="ghost" size="icon" disabled={offline} onClick={() => setEditOpen(true)} aria-label="Editar aula"><Pencil className="h-4 w-4" /></Button>
         </div>
       </div>
 
-      {l.youtube_url ? (
+      <VideoDownload url={l.youtube_url} />
+      {l.youtube_url && !offline ? (
         videoId ? (
           <div className="space-y-2">
             <div className="panel aspect-video overflow-hidden">
@@ -143,7 +150,7 @@ function LessonView({ lessonId }: { lessonId: string }) {
           <h2 className="text-lg font-semibold">Caderno da aula</h2>
           <div className="flex items-center gap-3">
             <SaveIndicator state={state} onRetry={save} />
-            <Button size="sm" onClick={async () => { if (await save()) toast.success("Anotações salvas."); else toast.error("Não foi possível salvar."); }} disabled={state === "saving" || notes.isLoading}>
+            <Button size="sm" onClick={async () => { if (await save()) toast.success("Anotações salvas."); else toast.error("Não foi possível salvar."); }} disabled={offline || state === "saving" || notes.isLoading}>
               <Save className="mr-1 h-4 w-4" />Salvar anotações
             </Button>
           </div>
@@ -179,11 +186,12 @@ function SaveIndicator({ state, onRetry }: { state: SaveState; onRetry: () => vo
 function NoteArea({ k, label, hint, fields, update, rows = 6, wide, accent }: {
   k: keyof NoteFields; label: string; hint: string; fields: NoteFields; update: (k: keyof NoteFields, v: string) => void; rows?: number; wide?: boolean; accent?: "warning";
 }) {
+  const offline = useOffline();
   return (
     <div className={`panel space-y-2 p-4 ${wide ? "lg:col-span-2" : ""} ${accent === "warning" ? "border-warning/40" : ""}`}>
       <label htmlFor={k} className={`text-sm font-medium ${accent === "warning" ? "text-warning" : ""}`}>{label}</label>
       <p className="text-xs text-muted-foreground">{hint}</p>
-      <Textarea id={k} value={fields[k]} onChange={(e) => update(k, e.target.value)} rows={rows} className="resize-y bg-background leading-relaxed" />
+      <Textarea readOnly={offline} id={k} value={fields[k]} onChange={(e) => update(k, e.target.value)} rows={rows} className="resize-y bg-background leading-relaxed" />
     </div>
   );
 }
@@ -191,6 +199,7 @@ function NoteArea({ k, label, hint, fields, update, rows = 6, wide, accent }: {
 const DOUBT_STATUS: Record<string, string> = { pending: "Pendente", researching: "Em pesquisa", resolved: "Resolvida" };
 
 function DoubtsList({ lessonId }: { lessonId: string }) {
+  const offline = useOffline();
   const qc = useQueryClient();
   const dq = useQuery(lessonDoubtsQuery(lessonId));
   const [text, setText] = useState("");
@@ -214,12 +223,12 @@ function DoubtsList({ lessonId }: { lessonId: string }) {
     <div className="mt-3 space-y-2">
       <form onSubmit={add} className="flex gap-2">
         <Input value={text} onChange={(e) => setText(e.target.value)} placeholder="Transformar em dúvida individual..." />
-        <Button type="submit" variant="outline" disabled={busy || !text.trim()}><Plus className="mr-1 h-4 w-4" />Registrar</Button>
+        <Button type="submit" variant="outline" disabled={offline || busy || !text.trim()}><Plus className="mr-1 h-4 w-4" />Registrar</Button>
       </form>
       {(dq.data ?? []).map((d) => (
         <div key={d.id} className="panel flex flex-wrap items-center gap-2 p-3 text-sm">
           <span className="min-w-0 flex-1">{d.question}</span>
-          <Select value={d.status} onValueChange={async (v) => {
+          <Select disabled={offline} value={d.status} onValueChange={async (v) => {
             const { error } = await supabase.from("doubts").update({ status: v, resolved_at: v === "resolved" ? new Date().toISOString() : null }).eq("id", d.id);
             if (error) toast.error("Erro ao atualizar."); else refresh();
           }}>
@@ -228,7 +237,7 @@ function DoubtsList({ lessonId }: { lessonId: string }) {
               {Object.entries(DOUBT_STATUS).map(([k, v]) => <SelectItem key={k} value={k}>{v}</SelectItem>)}
             </SelectContent>
           </Select>
-          <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Excluir dúvida" onClick={async () => {
+          <Button variant="ghost" size="icon" className="h-8 w-8" disabled={offline} aria-label="Excluir dúvida" onClick={async () => {
             if (!confirm("Excluir esta dúvida?")) return;
             const { error } = await supabase.from("doubts").delete().eq("id", d.id);
             if (error) toast.error("Erro ao excluir."); else refresh();
